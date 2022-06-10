@@ -1,25 +1,35 @@
-use std::ops::Add;
+use std::ops::{Add, Mul};
+use std::convert::{Into, From};
 
-#[derive(PartialEq, Eq, Debug)]
-pub enum Value {
-    Number(i32),
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
+pub enum Value<T: Add> {
+    Number(T),
     Inf,
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Point<const A: i32, const B: i32> {
-    x: Value,
-    y: Value,
+pub struct Point<const A: i32, const B: i32, T: Add + std::ops::Mul<Output = T>> {
+    x: Value<T>,
+    y: Value<T>,
 }
 
-impl<const A: i32, const B: i32> Point<A, B> {
-    pub fn new(x: Value, y: Value) -> Result<Point<A, B>, String> {
+impl<const A: i32, const B: i32, T: Add<Output = T> + Mul<Output = T>> Point<A, B, T>
+where
+    i32: Mul<T>,
+    i32: Add<T>,
+    T: std::cmp::PartialEq,
+    T: From<i32>,
+    i32: Into<T>,
+    T: 
+    //<T as Add>::Output
+{
+    pub fn new(x: Value<T>, y: Value<T>) -> Result<Point<A, B, T>, String> {
         match (x, y) {
             (Value::Inf, Value::Inf) => Ok(Point {
                 x: Value::Inf,
                 y: Value::Inf,
             }),
-            (Value::Number(x), Value::Number(y)) if y * y != x * x * x + A * x + B => {
+            (Value::Number(x), Value::Number(y)) if y * y != x * x * x + A.into() * x + B.into() => {
                 Err("point is not in the curve".to_string())
             }
             (x, y) => Ok(Point { x, y }),
@@ -27,6 +37,7 @@ impl<const A: i32, const B: i32> Point<A, B> {
     }
 }
 
+/*
 impl<const A: i32, const B: i32> Add for Point<A, B> {
     type Output = Point<A, B>;
     fn add(self, rhs: Self) -> Self::Output {
@@ -138,3 +149,4 @@ mod tests {
         assert_eq!(s, expt);
     }
 }
+*/
