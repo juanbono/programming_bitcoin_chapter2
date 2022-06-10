@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::Add;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum Value {
@@ -66,14 +66,36 @@ impl<const A: i32, const B: i32> Add for Point<A, B> {
             }
             (
                 Point {
-                    x: Value::Number(_),
-                    ..
+                    x: Value::Number(_x1),
+                    y: Value::Number(y1),
                 },
                 Point {
-                    x: Value::Number(_),
-                    ..
+                    x: Value::Number(_x2),
+                    y: Value::Number(_y2),
                 },
-            ) => todo!(),
+            ) if y1 == 0 => Point {
+                x: Value::Inf,
+                y: Value::Inf,
+            },
+            (
+                Point {
+                    x: Value::Number(x1),
+                    y: Value::Number(y1),
+                },
+                Point {
+                    x: Value::Number(_x2),
+                    y: Value::Number(_y2),
+                },
+            ) => {
+                let s = (3 * x1 * x1 + A) / (2 * y1);
+                let x3 = s * s - 2 * x1;
+                let y3 = s * (x1 - x3) - y1;
+                Point {
+                    x: Value::Number(x3),
+                    y: Value::Number(y3),
+                }
+            }
+            (_, _) => todo!(),
         }
     }
 }
@@ -84,7 +106,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_add() {
+    fn test_add_case_x1_dif_x2() {
         let p1: Point<5, 7> = Point {
             x: Value::Number(2),
             y: Value::Number(5),
@@ -98,6 +120,21 @@ mod tests {
             x: Value::Number(3),
             y: Value::Number(-7),
         };
+        assert_eq!(s, expt);
+    }
+
+    #[test]
+    fn test_add_case_p1_eq_p2() {
+        let p1: Point<5, 7> = Point {
+            x: Value::Number(-1),
+            y: Value::Number(-1),
+        };
+        let p2: Point<5, 7> = Point {
+            x: Value::Number(-1),
+            y: Value::Number(-1),
+        };
+        let s = p1 + p2;
+        let expt = Point::<5, 7>::new(Value::Number(18), Value::Number(77)).unwrap();
         assert_eq!(s, expt);
     }
 }
